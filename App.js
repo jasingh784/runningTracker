@@ -1,14 +1,20 @@
-
+import 'react-native-gesture-handler'
 import React, {useState, useEffect} from 'react';
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import MapView from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { NavigationContainer } from '@react-navigation/native';
 
 export default function App() {
 
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [region, setRegion] = useState(null)
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.001,
+    longitudeDelta: 0.001,});
+  const [route, setRoute] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -18,15 +24,7 @@ export default function App() {
         return;
       }
 
-      let location = await Location.watchPositionAsync({accuracy: Location.Accuracy.BestForNavigation, timeInterval: 5000}, locationUpdated);
-      // setLocation(location);
-      // console.log(location)
-      // setRegion({
-      //   latitude: location.coords.latitude,
-      //   longitude: location.coords.longitude,
-      //   latitudeDelta: 0.0922,
-      //   longitudeDelta: 0.0421,
-      // })
+      await Location.watchPositionAsync({accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 5}, locationUpdated);
     })();
 
   }, [])
@@ -34,6 +32,19 @@ export default function App() {
   const locationUpdated = (locObject) => {
     console.log('inside locationupdated')
     console.log(locObject)
+    setRegion({
+      latitude: locObject.coords.latitude,
+      longitude: locObject.coords.longitude,
+      latitudeDelta: 0.001,
+      longitudeDelta: 0.001,
+    })
+
+    setRoute(oldRoute => [...oldRoute, {
+      latitude: locObject.coords.latitude,
+      longitude: locObject.coords.longitude,
+    }]);
+
+    console.log(route)
   }
 
   return (
@@ -42,11 +53,22 @@ export default function App() {
         initialRegion={{
           latitude: 37.78825,
           longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
         }}
         region={region}
-      />
+        >
+        <Marker 
+          title="You"
+          coordinate={region}
+        />
+
+        <Polyline 
+          coordinates={route}
+          strokeColor='#e1341e'
+          strokeWidth={5}
+        />
+      </MapView>
     </SafeAreaView>
   );
 }
