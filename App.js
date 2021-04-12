@@ -1,83 +1,23 @@
 import 'react-native-gesture-handler'
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
-import * as Location from 'expo-location';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AccountScreen from './screens/AccountScreen';
+import RouteScreen from './screens/RouteScreen';
+import NewRunStackScreen from './screens/NewRunStackScreen';
+
+const Tab = createBottomTabNavigator()
 
 export default function App() {
 
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [region, setRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.001,
-    longitudeDelta: 0.001,});
-  const [route, setRoute] = useState([]);
-
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        return;
-      }
-
-      await Location.watchPositionAsync({accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 5}, locationUpdated);
-    })();
-
-  }, [])
-
-  const locationUpdated = (locObject) => {
-    console.log('inside locationupdated')
-    console.log(locObject)
-    setRegion({
-      latitude: locObject.coords.latitude,
-      longitude: locObject.coords.longitude,
-      latitudeDelta: 0.001,
-      longitudeDelta: 0.001,
-    })
-
-    setRoute(oldRoute => [...oldRoute, {
-      latitude: locObject.coords.latitude,
-      longitude: locObject.coords.longitude,
-    }]);
-
-    console.log(route)
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <MapView  style={styles.map}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.001,
-          longitudeDelta: 0.001,
-        }}
-        region={region}
-        >
-        <Marker 
-          title="You"
-          coordinate={region}
-        />
-
-        <Polyline 
-          coordinates={route}
-          strokeColor='#e1341e'
-          strokeWidth={5}
-        />
-      </MapView>
-    </SafeAreaView>
-  );
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="New Run" component={NewRunStackScreen} />
+        <Tab.Screen name="Account" component={AccountScreen} />
+        <Tab.Screen name="Routes" component={RouteScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  }
-});
